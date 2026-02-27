@@ -1,50 +1,120 @@
-<!-- This README file is going to be the one displayed on the Grafana.com website for your plugin. Uncomment and replace the content here before publishing.
+# WindRose Panel for Grafana
 
-Remove any remaining comments before publishing as these may be displayed on Grafana.com -->
+A Grafana panel plugin for windrose and scatter polar visualizations using Plotly.
 
-# Windrose-Panel
+![Grafana Dependency](https://img.shields.io/badge/dynamic/json?logo=grafana&query=%24.grafanaDependency&url=https%3A%2F%2Fgrafana.com%2Fapi%2Fplugins%2Fcoder-windrose-panel&label=Grafana)
+![Downloads](https://img.shields.io/badge/dynamic/json?logo=grafana&query=%24.downloads&url=https%3A%2F%2Fgrafana.com%2Fapi%2Fplugins%2Fcoder-windrose-panel&label=Downloads)
 
-<!-- To help maximize the impact of your README and improve usability for users, we propose the following loose structure:
+## Overview
 
-**BEFORE YOU BEGIN**
-- Ensure all links are absolute URLs so that they will work when the README is displayed within Grafana and Grafana.com
-- Be inspired ✨
-  - [grafana-polystat-panel](https://github.com/grafana/grafana-polystat-panel)
-  - [volkovlabs-variable-panel](https://github.com/volkovlabs/volkovlabs-variable-panel)
+WindRose Panel provides polar chart visualizations for wind and directional data in Grafana dashboards. It supports two plot types:
 
-**ADD SOME BADGES**
+- **Scatter polar**: Plot angle vs distance (e.g., wind direction vs speed) with configurable markers, colors, and size. Ideal for raw data points.
+- **Wind rose**: Classify data into directional bins and display as a polar histogram. Ideal for aggregated wind frequency analysis.
 
-Badges convey useful information at a glance for users whether in the Catalog or viewing the source code. You can use the generator on [Shields.io](https://shields.io/badges/dynamic-json-badge) together with the Grafana.com API
-to create dynamic badges that update automatically when you publish a new version to the marketplace.
-
-- For the URL parameter use `https://grafana.com/api/plugins/your-plugin-id`.
-- Example queries:
-  - Downloads: `$.downloads`
-  - Catalog Version: `$.version`
-  - Grafana Dependency: `$.grafanaDependency`
-  - Signature Type: `$.versionSignatureType`
-- Optionally, for the logo parameter use `grafana`.
-
-Full example: ![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?logo=grafana&query=$.version&url=https://grafana.com/api/plugins/grafana-polystat-panel&label=Marketplace&prefix=v&color=F47A20)
-
-Consider other [badges](https://shields.io/badges) as you feel appropriate for your project.
-
-## Overview / Introduction
-Provide one or more paragraphs as an introduction to your plugin to help users understand why they should use it.
-
-Consider including screenshots:
-- in [plugin.json](https://grafana.com/developers/plugin-tools/reference/plugin-json#info) include them as relative links.
-- in the README ensure they are absolute URLs.
+Both modes use polar coordinates to visualize directional data effectively.
 
 ## Requirements
-List any requirements or dependencies they may need to run the plugin.
+
+- **Grafana**: 11.0.0 or higher
+- **Data**: Time series or table data with at least two numeric fields (angle/direction and distance/speed)
 
 ## Getting Started
-Provide a quick start on how to configure and use the plugin.
+
+### Installation
+
+**From Grafana catalog** (when published):
+
+```bash
+grafana cli plugins install coder-windrose-panel
+```
+
+**From ZIP URL**:
+
+```bash
+grafana cli --pluginUrl https://example.com/coder-windrose-panel-1.0.0.zip plugins install coder-windrose-panel
+```
+
+**Manual installation**:
+
+1. Build the plugin:
+   ```bash
+   npm install
+   npm run build
+   ```
+2. Copy the `dist` folder contents into `coder-windrose-panel` inside your Grafana plugins directory:
+   - **Linux**: `/var/lib/grafana/plugins/`
+   - **macOS**: `/usr/local/var/lib/grafana/plugins/` (or `$GF_PATHS_PLUGINS`)
+   - **Windows**: `<grafana-install-dir>\data\plugins\`
+3. Restart Grafana.
+
+### Configuration
+
+1. Add a new panel and select **WindRose Panel**.
+2. Configure your data source query to return at least two numeric fields.
+3. In the panel options, map the fields:
+   - **Angle (X)**: Field for direction/angle (e.g., wind direction in degrees, 0–360).
+   - **Distance (Y)**: Field for magnitude (e.g., wind speed in m/s).
+
+### Plot Types
+
+**Scatter** (default):
+
+- Maps each data point as a marker in polar coordinates.
+- Options: marker symbol, size (fixed or from a metric), color (solid or ramp from a metric), color scale.
+- Use when you want to see individual measurements.
+
+**Wind Rose**:
+
+- Bins data by direction and speed, then displays as stacked polar segments.
+- Options: number of petals (directional bins), wind speed interval (bin size in m/s).
+- Use when you want frequency distribution by direction and speed.
+
+### Additional Options
+
+- **Rotation**: Rotate the angular axis (e.g., to align 0° with North).
+- **Direction**: Clockwise or counterclockwise for angular axis.
+- **Toolbar**: Show or hide the Plotly mode bar (zoom, pan, etc.).
+
+## Development
+
+### Prerequisites
+
+- Node.js 22 or higher
+- npm 10.x
+
+### Build and Run
+
+```bash
+# Install dependencies
+npm install
+
+# Development build (watch mode)
+npm run dev
+
+# Production build
+npm run build
+
+# Run Grafana with the plugin (Docker)
+npm run server
+
+# Lint and type check
+npm run lint
+npm run typecheck
+```
+
+### Project Structure
+
+- `src/components/WindrosePanel.tsx` – Main panel component
+- `src/windroseUtils.ts` – Data processing for scatter and wind rose
+- `src/module.ts` – Plugin registration and options
+- `src/types.ts` – TypeScript interfaces
 
 ## Documentation
-If your project has dedicated documentation available for users, provide links here. For help in following Grafana's style recommendations for technical documentation, refer to our [Writer's Toolkit](https://grafana.com/docs/writers-toolkit/).
+
+- [Grafana Plugin Development](https://grafana.com/developers/plugins/)
+- [Plotly.js Polar Charts](https://plotly.com/javascript/polar-chart/)
 
 ## Contributing
-Do you want folks to contribute to the plugin or provide feedback through specific means? If so, tell them how!
--->
+
+Contributions are welcome. Please open an issue or pull request in the repository.
