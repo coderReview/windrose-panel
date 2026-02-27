@@ -1,57 +1,81 @@
-## Windrose Panel for Grafana
+# WindRose Panel for Grafana
 
-Render metrics into a windrose chart.
+A Grafana panel plugin for windrose and scatter polar visualizations using Plotly.
 
-### Screenshots
+## Features
 
-![](https://i.imgur.com/ADjvKwA.png)
+- **Scatter polar**: Plot angle vs distance with configurable markers, colors, and size
+- **Wind rose**: Classify data into directional bins and display as polar histogram
 
-![](https://i.imgur.com/HXLgwLB.png)
+## Installation
 
-### Environments
+### Using Grafana CLI
 
-For linux ubuntu 16.04, first get nvm installed. some instructions can be found [here](https://www.digitalocean.com/community/tutorials/how-to-install-node-js-on-ubuntu-16-04).
+If the plugin is published to the Grafana catalog:
 
-After nvm installation, activate one engine. Here version 8.x is picked for no particular reason.
-
-```
-nvm install v8
-nvm use v8
+```bash
+grafana cli plugins install coder-windrose-panel
 ```
 
-### Building
+To install from a ZIP file URL:
 
-To complie, run:
-
-```
-npm install -g yarn
-yarn install --pure-lockfile
-grunt
+```bash
+grafana cli --pluginUrl https://example.com/coder-windrose-panel-1.0.0.zip plugins install coder-windrose-panel
 ```
 
-### Roadmap
+Restart Grafana after installation.
 
-* This plugin is modified from [plotly panel for grafana](https://github.com/NatelEnergy/grafana-plotly-panel) and currently has many inconsistent variable names to be refactored.
+### Manual installation
 
-### Authors and contributors
+1. Build the plugin:
 
-The Grafana Windrose Plugin was initiated as a part of the joint research project among RCAS, RCEC of Academia Sinica of Taiwan; NCHC, TORI of Natioanl Applied Research Laboratories of Taiwan and Taiwan Generations Corporation.  It was developed by Sea Bunny Corporation and released under MIT license.
+   ```bash
+   npm install
+   npm run build
+   ```
 
-The contacts of developers are
+2. Copy the `dist` folder contents into a new folder named `coder-windrose-panel` inside your Grafana plugins directory:
+   - **Linux**: `/var/lib/grafana/plugins/`
+   - **macOS**: `/usr/local/var/lib/grafana/plugins/` (or `$GF_PATHS_PLUGINS` if set)
+   - **Windows**: `<grafana-install-dir>\data\plugins\`
 
-Chih-Yu Kuo
-Research Fellow,
-RCAS, Academia Sinica,
-Taipei, Taiwan
-cykuo06@gate.sinica.edu.tw
+   ```bash
+   cp -r dist /var/lib/grafana/plugins/coder-windrose-panel
+   ```
 
-and
+3. Restart Grafana.
 
-Chun-Yun Wang,
-Sea Bunny Corporation,
-Taipei, Taiwan.
-cloud@seabunny.tech
+## Development
 
-RCAS: Research Center for Applied Sciences, RCEC: Research Center for Environmental Changes, NCHC: National Center for High-performance Computing, TORI: Taiwan Ocean Research Institute.
+### Build
 
-The code based is modified from a fork of [plotly panel for grafana](https://github.com/NatelEnergy/grafana-plotly-panel).
+1. Install dependencies
+
+   ```bash
+   npm install
+   ```
+
+2. Build plugin in development mode (watch)
+
+   ```bash
+   npm run dev
+   ```
+
+3. Build plugin for production
+
+   ```bash
+   npm run build
+   ```
+
+4. Run Grafana with the plugin (Docker)
+
+   ```bash
+   npm run server
+   ```
+
+5. Lint and typecheck
+
+   ```bash
+   npm run lint
+   npm run typecheck
+   ```
