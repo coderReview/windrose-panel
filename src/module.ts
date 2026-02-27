@@ -175,8 +175,7 @@ export const plugin = new PanelPlugin<WindroseOptions>(WindrosePanel)
       .addFieldNamePicker({
         path: 'mapping.color',
         name: 'Color metric',
-        showIf: (opts) =>
-          opts.settings?.plot === 'scatter' && opts.settings?.color_option === 'ramp',
+        showIf: (opts) => opts.settings?.plot === 'scatter' && opts.settings?.color_option === 'ramp',
       })
       .addSelect({
         path: 'settings.marker.colorscale',
@@ -184,14 +183,12 @@ export const plugin = new PanelPlugin<WindroseOptions>(WindrosePanel)
         settings: {
           options: COLORSCALE_OPTIONS,
         },
-        showIf: (opts) =>
-          opts.settings?.plot === 'scatter' && opts.settings?.color_option !== 'solid',
+        showIf: (opts) => opts.settings?.plot === 'scatter' && opts.settings?.color_option !== 'solid',
       })
       .addBooleanSwitch({
         path: 'settings.marker.showscale',
         name: 'Show color scale',
         defaultValue: true,
-        showIf: (opts) =>
-          opts.settings?.plot === 'scatter' && opts.settings?.color_option !== 'solid',
+        showIf: (opts) => opts.settings?.plot === 'scatter' && opts.settings?.color_option !== 'solid',
       });
   });

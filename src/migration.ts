@@ -103,9 +103,7 @@ export function migratePconfigToOptions(pconfig: LegacyPconfig): Partial<Windros
   };
 }
 
-export function windroseMigrationHandler(
-  panel: PanelModel<WindroseOptions>
-): Partial<WindroseOptions> {
+export function windroseMigrationHandler(panel: PanelModel<WindroseOptions>): Partial<WindroseOptions> {
   const pconfig = (panel as unknown as { pconfig?: LegacyPconfig }).pconfig;
   if (pconfig) {
     return migratePconfigToOptions(pconfig);

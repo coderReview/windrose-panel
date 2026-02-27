@@ -51,7 +51,6 @@ export function processDataToTraces(
     }
   }
 
-
   const trace: PlotlyTrace = {
     type: 'scatterpolar',
     fill: 'none',
@@ -93,12 +92,11 @@ export function processDataToTraces(
     }
 
     for (let p = 0; p < numPoints; p++) {
-      const angleIdx =
-        ((Math.floor(theta[p] / angle + 0.5) % numAngle) + numAngle) % numAngle;
+      const angleIdx = ((Math.floor(theta[p] / angle + 0.5) % numAngle) + numAngle) % numAngle;
       pointsOnDir[angleIdx].push(r[p]);
     }
 
-    const maxSpeed = Math.max(...r);
+    const maxSpeed = r.length > 0 ? r.reduce((a, b) => Math.max(a, b), r[0]) : 0;
     const binSize = settings.wind_speed_interval;
     const binNum = Math.ceil(maxSpeed / binSize);
     const speedLevels: number[] = [];
@@ -115,46 +113,39 @@ export function processDataToTraces(
         const pts = pointsOnDir[angleIdx];
         let binCounter = 0;
         for (let idx = 0; idx < pts.length; idx++) {
-          if (
-            pts[idx] >= speedLevels[binIdx] &&
-            pts[idx] < speedLevels[binIdx + 1]
-          ) {
+          if (pts[idx] >= speedLevels[binIdx] && pts[idx] < speedLevels[binIdx + 1]) {
             binCounter++;
           }
         }
         const totalLength = pts.length / numPoints;
-        const deltaLength =
-          pts.length > 0 ? (binCounter / pts.length) * totalLength : 0;
+        const deltaLength = pts.length > 0 ? (binCounter / pts.length) * totalLength : 0;
         baseLengths[angleIdx] += 100 * deltaLength;
         petals[binIdx].push(baseLengths[angleIdx]);
       }
     }
 
-    let thetas: number[] = [];
+    const baseThetas: number[] = [];
     for (let angleIdx = 0; angleIdx < numAngle; angleIdx++) {
-      thetas.push(angleIdx * angle - 0.5 * angle);
+      baseThetas.push(angleIdx * angle - 0.5 * angle);
     }
 
+    const traceData: { theta: number[]; r: number[] }[] = [];
     for (let i = 0; i < binNum; i++) {
-      const [angs, rVals] = expandToFan(thetas, petals[i]);
-      thetas = angs;
-      petals[i] = rVals;
+      const [angs, rVals] = expandToFan(baseThetas, petals[i]);
+      traceData.push({ theta: angs, r: rVals });
     }
 
     const traces: PlotlyTrace[] = [];
     for (let binIdx = 0; binIdx < binNum; binIdx++) {
       const lowerLevel = speedLevels[binIdx];
       const upperLevel = speedLevels[binIdx + 1];
-      const hue =
-        binNum > 1
-          ? 255 * (1 - binIdx / (binNum - 1))
-          : 255;
+      const hue = binNum > 1 ? 255 * (1 - binIdx / (binNum - 1)) : 255;
       traces.unshift({
         type: 'scatterpolar',
         mode: 'lines',
         name: `${lowerLevel} - ${upperLevel} m/s`,
-        theta: thetas,
-        r: petals[binIdx],
+        theta: traceData[binIdx].theta,
+        r: traceData[binIdx].r,
         fill: 'toself',
         opacity: 1,
         line: { color: 'rgb(0,0,0)', width: 0 },
@@ -197,8 +188,11 @@ export function buildDataMapFromDataFrames(
       const values = field.values ? Array.from(field.values as Iterable<unknown>) : [];
       let fieldType = 'number';
       if (values.length > 0) {
-        if (typeof values[0] === 'string') fieldType = 'string';
-        else if (typeof values[0] === 'boolean') fieldType = 'boolean';
+        if (typeof values[0] === 'string') {
+          fieldType = 'string';
+        } else if (typeof values[0] === 'boolean') {
+          fieldType = 'boolean';
+        }
       }
 
       const val = {

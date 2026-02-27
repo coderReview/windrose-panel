@@ -35,7 +35,6 @@ Restart Grafana after installation.
    ```
 
 2. Copy the `dist` folder contents into a new folder named `coder-windrose-panel` inside your Grafana plugins directory:
-
    - **Linux**: `/var/lib/grafana/plugins/`
    - **macOS**: `/usr/local/var/lib/grafana/plugins/` (or `$GF_PATHS_PLUGINS` if set)
    - **Windows**: `<grafana-install-dir>\data\plugins\`

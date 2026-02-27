@@ -1,10 +1,13 @@
-import React, { useEffect, useRef, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { PanelProps, getFieldDisplayName } from '@grafana/data';
 import { PanelDataErrorView } from '@grafana/runtime';
 import { useTheme2 } from '@grafana/ui';
+import createPlotlyComponent from 'react-plotly.js/factory';
 import Plotly from 'plotly.js-dist-min';
 import type { WindroseOptions } from '../types';
 import { buildDataMapFromDataFrames, processDataToTraces } from '../windroseUtils';
+
+const Plot = createPlotlyComponent(Plotly);
 
 interface Props extends PanelProps<WindroseOptions> {}
 
@@ -13,9 +16,23 @@ type PlotlyTrace = Record<string, unknown>;
 const MARGIN = 20;
 
 export const WindrosePanel: React.FC<Props> = ({ options, data, width, height, id, fieldConfig }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const plotRef = useRef<Plotly.PlotlyHTMLElement | null>(null);
   const theme = useTheme2();
+
+  // Stable option fields to avoid unnecessary recomputation when options object reference changes
+  const mappingX = options.mapping?.x ?? null;
+  const mappingY = options.mapping?.y ?? null;
+  const mappingColor = options.mapping?.color ?? null;
+  const mappingSize = options.mapping?.size ?? null;
+  const plotType = options.settings?.plot ?? 'scatter';
+  const petals = options.settings?.petals ?? 32;
+  const windSpeedInterval = options.settings?.wind_speed_interval ?? 2;
+  const markerSettings = options.settings?.marker;
+  const colorOption = options.settings?.color_option ?? 'ramp';
+  const displayModeBar = options.settings?.displayModeBar ?? false;
+  const layoutPolar = options.layout?.polar;
+  const layoutFont = options.layout?.font;
+  const layoutLegend = options.layout?.legend;
+  const textColor = theme.colors.text.primary;
 
   const traces = useMemo((): PlotlyTrace[] => {
     if (data.series.length === 0) {
@@ -23,42 +40,44 @@ export const WindrosePanel: React.FC<Props> = ({ options, data, width, height, i
     }
 
     try {
-      console.log('[Windrose] data:', data);
       const dataMap = buildDataMapFromDataFrames(data.series, getFieldDisplayName);
       const fieldNames = Object.keys(dataMap).filter((k) => k !== '@time' && k !== '@index');
-      console.log('[Windrose] data:', { seriesCount: data.series.length, fields: fieldNames });
 
       const mapping = {
         ...options.mapping,
-        x: options.mapping.x || fieldNames[0] || null,
-        y: options.mapping.y || fieldNames[1] || fieldNames[0] || null,
-        color: options.mapping.color || fieldNames[2] || null,
+        x: mappingX || fieldNames[0] || null,
+        y: mappingY || fieldNames[1] || fieldNames[0] || null,
+        color: mappingColor || fieldNames[2] || null,
       };
 
-      const opts = { ...options, mapping };
+      const opts: WindroseOptions = {
+        ...options,
+        mapping,
+        settings: {
+          ...options.settings,
+          plot: plotType,
+          petals,
+          wind_speed_interval: windSpeedInterval,
+        },
+      };
       return processDataToTraces(dataMap, opts);
     } catch (err) {
       console.error('Windrose data processing error:', err);
       return [];
     }
-  }, [data.series, options]);
+  }, [
+    data,
+    mappingX,
+    mappingY,
+    mappingColor,
+    plotType,
+    petals,
+    windSpeedInterval,
+    options,
+  ]);
 
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container || traces.length === 0) return;
-
-    const plotSize = Math.min(
-      width - 2 * MARGIN,
-      height - 2 * MARGIN
-    );
-    const marginLeft = (width - plotSize) / 2;
-    const marginRight = (width - plotSize) / 2;
-    const marginTop = (height - plotSize) / 2;
-    const marginBottom = (height - plotSize) / 2;
-
-    const r = Math.max(MARGIN, marginRight);
-
-    const tracesWithColorbar = traces.map((trace) => {
+  const tracesWithColorbar = useMemo(() => {
+    return traces.map((trace) => {
       const marker = trace.marker as Record<string, unknown> | undefined;
       if (marker?.showscale) {
         return {
@@ -78,16 +97,21 @@ export const WindrosePanel: React.FC<Props> = ({ options, data, width, height, i
       }
       return trace;
     });
+  }, [traces]);
 
-    const plotType = options.settings?.plot ?? 'scatter';
-    const showlegend = plotType === 'windrose';
-    const radialTicksuffix = plotType === 'scatter' ? ' m/s' : '%';
+  const plotSize = Math.min(width - 2 * MARGIN, height - 2 * MARGIN);
+  const marginLeft = (width - plotSize) / 2;
+  const marginRight = (width - plotSize) / 2;
+  const marginTop = (height - plotSize) / 2;
+  const marginBottom = (height - plotSize) / 2;
+  const r = Math.max(MARGIN, marginRight);
 
-    const layout: Partial<Plotly.Layout> = {
+  const layout = useMemo(
+    () => ({
       ...options.layout,
       width,
       height,
-      showlegend,
+      showlegend: plotType === 'windrose',
       margin: {
         l: Math.max(MARGIN, marginLeft),
         r: Math.max(MARGIN, r),
@@ -95,66 +119,55 @@ export const WindrosePanel: React.FC<Props> = ({ options, data, width, height, i
         b: Math.max(MARGIN, marginBottom),
       },
       font: {
-        ...options.layout.font,
-        color: theme.colors.text.primary,
+        ...layoutFont,
+        color: textColor,
       },
       plot_bgcolor: 'transparent',
       paper_bgcolor: 'transparent',
       polar: {
-        ...(options.layout.polar ?? {}),
+        ...layoutPolar,
         radialaxis: {
-          ...(options.layout.polar?.radialaxis ?? {}),
-          ticksuffix: radialTicksuffix,
-          angle: options.layout.polar?.radialaxis?.angle ?? 90,
+          ...layoutPolar?.radialaxis,
+          ticksuffix: plotType === 'scatter' ? ' m/s' : '%',
+          angle: layoutPolar?.radialaxis?.angle ?? 90,
         },
       },
       legend: {
-        ...options.layout.legend,
+        ...layoutLegend,
         x: 0.05,
         xanchor: 'right',
         y: 0.95,
         yanchor: 'middle',
       },
-    };
+    }),
+    [
+      options.layout,
+      width,
+      height,
+      plotType,
+      marginLeft,
+      r,
+      marginTop,
+      marginBottom,
+      layoutFont,
+      textColor,
+      layoutPolar,
+      layoutLegend,
+    ]
+  );
 
-    const plotOptions: Partial<Plotly.PlotConfig> = {
+  const config = useMemo(
+    () => ({
       showLink: false,
       displaylogo: false,
-      displayModeBar: options.settings.displayModeBar,
-      modeBarButtonsToRemove: ['sendDataToCloud'],
-    };
-
-    if (!plotRef.current) {
-      Plotly.newPlot(container, tracesWithColorbar, layout, plotOptions);
-      plotRef.current = container as Plotly.PlotlyHTMLElement;
-    } else {
-      Plotly.react(container, tracesWithColorbar, layout, plotOptions);
-    }
-
-    return () => {
-      if (container && plotRef.current === container) {
-        Plotly.purge(container);
-        plotRef.current = null;
-      }
-    };
-  }, [traces, options, width, height, theme.colors.text.primary]);
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container || !plotRef.current) return;
-
-    Plotly.Plots.resize(container as Plotly.PlotlyHTMLElement);
-  }, [width, height]);
+      displayModeBar,
+      modeBarButtonsToRemove: ['sendDataToCloud'] as const,
+    }),
+    [displayModeBar]
+  );
 
   if (data.series.length === 0) {
-    return (
-      <PanelDataErrorView
-        fieldConfig={fieldConfig}
-        panelId={id}
-        data={data}
-        needsStringField={false}
-      />
-    );
+    return <PanelDataErrorView fieldConfig={fieldConfig} panelId={id} data={data} needsStringField={false} />;
   }
 
   if (traces.length === 0) {
@@ -166,13 +179,11 @@ export const WindrosePanel: React.FC<Props> = ({ options, data, width, height, i
   }
 
   return (
-    <div
-      ref={containerRef}
-      style={{
-        width: `${width}px`,
-        height: `${height}px`,
-        minHeight: 100,
-      }}
+    <Plot
+      data={tracesWithColorbar}
+      layout={layout}
+      config={config}
+      style={{ width: `${width}px`, height: `${height}px`, minHeight: 100 }}
     />
   );
 };
