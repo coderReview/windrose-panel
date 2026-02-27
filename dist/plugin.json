@@ -1,30 +1,41 @@
 {
-  "type": "panel",
-  "name": "WindRose",
-  "id": "fatcloud-windrose-panel",
-
-  "info": {
-    "description": "Make windrose plots",
-    "author": {
-      "name": "Cloud",
-      "url": "https://github.com/fatcloud"
+    "$schema": "https://raw.githubusercontent.com/grafana/grafana/main/docs/sources/developers/plugins/plugin.schema.json",
+    "type": "panel",
+    "name": "WindRose Panel",
+    "id": "coder-windrose-panel",
+    "info": {
+        "keywords": [
+            "windrose",
+            "panel",
+            "plotly",
+            "scatter",
+            "polar"
+        ],
+        "description": "Make windrose and scatter polar plots",
+        "author": {
+            "name": "Coder"
+        },
+        "logos": {
+            "small": "img/windrose_logo.svg",
+            "large": "img/windrose_logo.svg"
+        },
+        "links": [],
+        "screenshots": [
+            {
+                "name": "Showcase",
+                "path": "img/twocharts.png"
+            },
+            {
+                "name": "Options",
+                "path": "img/windroseoptions.png"
+            }
+        ],
+        "version": "%VERSION%",
+        "updated": "%TODAY%"
     },
-    "keywords": ["windrose", "panel"],
-    "logos": {
-      "small": "img/windrose_logo.svg",
-      "large": "img/windrose_logo.svg"
+    "dependencies": {
+        "grafanaDependency": ">=11.0.0",
+        "plugins": []
     },
-    "links": [{"name": "Github", "url": "https://github.com/fatcloud/windrose-panel"}],
-    "screenshots": [
-      {"name": "Showcase", "path": "img/twocharts.png"},
-      {"name": "Options", "path": "img/windroseoptions.png"}
-    ],
-    "version": "0.7.0",
-    "updated": "2019-10-06"
-  },
-
-  "dependencies": {
-    "grafanaVersion": "4.x.x",
-    "plugins": []
-  }
+    "buildMode": "development"
 }
