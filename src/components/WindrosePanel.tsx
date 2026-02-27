@@ -62,16 +62,7 @@ export const WindrosePanel: React.FC<Props> = ({ options, data, width, height, i
       console.error('Windrose data processing error:', err);
       return [];
     }
-  }, [
-    data,
-    mappingX,
-    mappingY,
-    mappingColor,
-    plotType,
-    petals,
-    windSpeedInterval,
-    options,
-  ]);
+  }, [data, mappingX, mappingY, mappingColor, plotType, petals, windSpeedInterval, options]);
 
   const tracesWithColorbar = useMemo(() => {
     return traces.map((trace) => {

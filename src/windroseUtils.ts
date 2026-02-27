@@ -129,7 +129,7 @@ export function processDataToTraces(
       baseThetas.push(angleIdx * angle - 0.5 * angle);
     }
 
-    const traceData: { theta: number[]; r: number[] }[] = [];
+    const traceData: Array<{ theta: number[]; r: number[] }> = [];
     for (let i = 0; i < binNum; i++) {
       const [angs, rVals] = expandToFan(baseThetas, petals[i]);
       traceData.push({ theta: angs, r: rVals });
