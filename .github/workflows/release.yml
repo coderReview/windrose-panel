@@ -19,15 +19,22 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
       - uses: grafana/plugin-actions/build-plugin@build-plugin/v1.0.2
         id: build
-        # Uncomment to enable plugin signing
-        # (For more info on how to generate the access policy token see https://grafana.com/developers/plugin-tools/publish-a-plugin/sign-a-plugin#generate-an-access-policy-token)
-        #with:
-        # Make sure to save the token in your repository secrets
-        #policy_token: $
-        # Usage of GRAFANA_API_KEY is deprecated, prefer `policy_token` option above
-        #grafana_token: $
+        with:
+          node-version: '22'
+          # Uncomment to enable plugin signing (see https://grafana.com/developers/plugin-tools/publish-a-plugin/sign-a-plugin#generate-an-access-policy-token)
+          # policy_token: ${{ secrets.GRAFANA_ACCESS_POLICY_TOKEN }}
+          # grafana_token: ${{ secrets.GRAFANA_API_KEY }}  # deprecated, prefer policy_token
 
       # build-plugin creates a draft release with ZIP + SHA1; publish it automatically
       - name: Publish GitHub release
